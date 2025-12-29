@@ -1,0 +1,16 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY requirements.txt ./
+
+RUN pip install -r requirements.txt
+
+RUN apt-get update && apt-get install sqlite3 && rm -rf /var/lib/apt/lists/*
+
+COPY schema.sql init.sql ./
+COPY app.py .
+
+EXPOSE 5000
+
+CMD ["sh", "-c", "sqlite3 database.db < schema.sql && sqlite3 database.db < init.sql && python app.py"]
