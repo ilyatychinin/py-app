@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 import json
 import aiohttp
-from cobalt import APP_URL
+from config import APP_URL
 
 router = Router()
 
