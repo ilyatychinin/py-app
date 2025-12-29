@@ -104,6 +104,7 @@ def get_todos():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка БД: {str(e)}")
 
+# При создании задачи теперь можно указать user_id
 @app.post("/todos", response_model=dict, status_code=201)
 def create_todo(todo: TodoCreate):
     """Создать новую задачу"""
@@ -111,11 +112,12 @@ def create_todo(todo: TodoCreate):
         conn = get_db_connection()
         cursor = conn.cursor()
         
+        # Если user_id не указан, используем первого пользователя или создаем default
         cursor.execute(
-            'INSERT INTO todos (task, completed, created_at) VALUES (%s, %s, %s) RETURNING id',
-            (todo.task, todo.completed, datetime.now())
+            'INSERT INTO todos (user_id, task, completed, created_at) VALUES (%s, %s, %s, %s) RETURNING id',
+            (1, todo.task, todo.completed, datetime.now())  # user_id = 1
         )
-        
+
         todo_id = cursor.fetchone()[0]
         conn.commit()
         cursor.close()
@@ -247,3 +249,75 @@ def get_stats():
 if __name__ == '__main__':
     import uvicorn
     uvicorn.run(app, host='0.0.0.0', port=5000)
+
+# Добавьте модели
+class UserCreate(BaseModel):
+    name: str
+    email: str
+
+class User(BaseModel):
+    id: int
+    name: str
+    email: str
+    created_at: str
+
+# Добавьте endpoints
+@app.get("/users", response_model=List[User])
+def get_users():
+    """Получить всех пользователей"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        cursor.execute('SELECT id, name, email, created_at::text FROM users ORDER BY id')
+        users = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+        
+        return [dict(user) for user in users]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка БД: {str(e)}")
+
+@app.post("/users", response_model=dict, status_code=201)
+def create_user(user: UserCreate):
+    """Создать нового пользователя"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute(
+            'INSERT INTO users (name, email) VALUES (%s, %s) RETURNING id',
+            (user.name, user.email)
+        )
+        
+        user_id = cursor.fetchone()[0]
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return {"message": "Пользователь создан", "id": user_id, "name": user.name}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка БД: {str(e)}")
+
+@app.get("/users/{user_id}", response_model=User)
+def get_user(user_id: int):
+    """Получить пользователя по ID"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        cursor.execute('SELECT id, name, email, created_at::text FROM users WHERE id = %s', (user_id,))
+        user = cursor.fetchone()
+        
+        cursor.close()
+        conn.close()
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="Пользователь не найден")
+        
+        return dict(user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка БД: {str(e)}")
