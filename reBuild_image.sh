@@ -4,7 +4,7 @@ set -e
 
 IMAGE_VERSION=v3
 CONTAINER_NAME=py-app
-
+docker container ls
 echo "Остановка старого контейнера"
 docker container kill $CONTAINER_NAME
 
