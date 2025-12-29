@@ -6,16 +6,11 @@ from config import BOT_TOKEN
 from handlers import router
 
 async def main():
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    
+    logging.basicConfig(level=logging.INFO)
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(router)
-    
-    print("🤖 TODO Bot запущен!")
+    print("🤖 Bot started!")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
