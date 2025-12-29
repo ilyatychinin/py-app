@@ -125,8 +125,8 @@ function HomePage() {
 function TodosPage() {
   const [todos, setTodos] = useState<Todo[]>([])
   const [newTodo, setNewTodo] = useState('')
-  const [editingId, setEditingId] = useState<number | null>(null)
-  const [editTodo, setEditTodo] = useState('')
+  // const [editingId, setEditingId] = useState<number | null>(null)
+  // const [editTodo, setEditTodo] = useState('')
 
   useEffect(() => {
     fetchTodos()
