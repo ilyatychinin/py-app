@@ -144,32 +144,26 @@ def create_user(user: UserCreate):
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        try:
-            cursor.execute(
-                'INSERT INTO users (name, email) VALUES (%s, %s) RETURNING id',
-                (user.name, user.email)
-            )
-            
-            user_id = cursor.fetchone()[0]
-            conn.commit()  # ← Коммит ТОЛЬКО если успех
-            
-            return {
-                "message": "Пользователь создан",
-                "id": user_id,
-                "name": user.name,
-                "email": user.email
-            }
-        except psycopg2.IntegrityError as e:
-            conn.rollback()  # ← Откатить транзакцию при ошибке
-            raise HTTPException(status_code=400, detail="Email уже существует")
-        finally:
-            cursor.close()
-            conn.close()
-    except HTTPException:
-        raise
+        cursor.execute(
+            'INSERT INTO users (name, email) VALUES (%s, %s) RETURNING id',
+            (user.name, user.email)
+        )
+        
+        user_id = cursor.fetchone()[0]
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return {
+            "message": "Пользователь создан",
+            "id": user_id,
+            "name": user.name,
+            "email": user.email
+        }
+    except psycopg2.IntegrityError:
+        raise HTTPException(status_code=400, detail="Email уже существует")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка БД: {str(e)}")
-
 
 @app.get("/users/{user_id}", response_model=User)
 def get_user(user_id: int):
