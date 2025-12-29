@@ -108,21 +108,17 @@ async def add_todo_cb(callback: CallbackQuery, state: FSMContext):
 async def process_task(msg: Message, state: FSMContext):
     task = msg.text.strip()
     
-    # Создаем TODO (user_id=1 для примера, можно добавить выбор пользователя)
     async with aiohttp.ClientSession() as session:
         async with session.post(f"{APP_URL}/todos", json={
-            "userid": 1,
+            "user_id": 1,      # ← ИСПРАВЛЕНО!
             "task": task,
             "completed": False
         }) as resp:
             result = await resp.json()
     
-    await msg.answer(
-        f"✅ Задача добавлена!\n\n<code>{json.dumps(result, indent=2, ensure_ascii=False)}</code>",
-        reply_markup=get_main_menu(),
-        parse_mode="HTML"
-    )
+    await msg.answer("✅ Задача добавлена!", reply_markup=get_main_menu())
     await state.clear()
+
 
 @router.callback_query(F.data == "cancel")
 async def cancel_cb(callback: CallbackQuery, state: FSMContext):
