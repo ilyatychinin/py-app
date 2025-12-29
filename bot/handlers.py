@@ -16,13 +16,13 @@ class BotStates(StatesGroup):
 
 # Клавиатура меню
 def get_main_menu():
-    return InlineKeyboardMarkup(inline_keyboard=[
+    kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📋 Мои TODO", callback_data="my_todos")],
         [InlineKeyboardButton(text="➕ Новый TODO", callback_data="add_todo")],
-        [InlineKeyboardButton(text="👤 Создать user", callback_data="create_user")],  # ← НОВОЕ!
         [InlineKeyboardButton(text="📊 Статистика", callback_data="stats")],
         [InlineKeyboardButton(text="👥 Пользователи", callback_data="users")],
-        [InlineKeyboardButton(text="🔄 Health", callback_data="health")]
+        [InlineKeyboardButton(text="🔄 Health", callback_data="health")],
+        [InlineKeyboardButton(text="⚙️ Управление", callback_data="manage")]
     ])
     return kb
 
@@ -127,18 +127,37 @@ async def cancel_cb(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text("Отменено", reply_markup=get_main_menu())
     await callback.answer()
 
-@router.callback_query(F.data == "create_user")
-async def create_user_cb(callback: CallbackQuery):
-    async with aiohttp.ClientSession() as session:
-        async with session.post(f"{APP_URL}/users", json={
-            "name": "Telegram Bot User",
-            "email": f"bot_{callback.from_user.id}@example.com"
-        }) as resp:
-            result = await resp.json()
-    
+@router.callback_query(F.data == "manage")
+async def manage_cb(callback: CallbackQuery):
     await callback.message.edit_text(
-        f"✅ Пользователь создан!\n<code>{json.dumps(result, indent=2)}</code>",
+        "⚙️ <b>Управление задачами:</b>\n\n"
+        "• <code>/complete ID</code> - завершить задачу\n"
+        "• <code>/delete ID</code> - удалить задачу\n\n"
+        "<i>ID смотрите в списке TODO</i>",
         reply_markup=get_main_menu(),
         parse_mode="HTML"
     )
-    await callback.answer()
+
+@router.message(Command("complete"))
+async def cmd_complete(msg: Message):
+    try:
+        todo_id = int(msg.text.split()[1])
+        async with aiohttp.ClientSession() as session:
+            async with session.put(f"{APP_URL}/todos/{todo_id}", json={
+                "task": "Завершено", "completed": True
+            }) as resp:
+                result = await resp.json()
+        await msg.answer(f"✅ Задача {todo_id} завершена!")
+    except:
+        await msg.answer("❌ Используйте: /complete 1")
+
+@router.message(Command("delete"))
+async def cmd_delete(msg: Message):
+    try:
+        todo_id = int(msg.text.split()[1])
+        async with aiohttp.ClientSession() as session:
+            async with session.delete(f"{APP_URL}/todos/{todo_id}") as resp:
+                result = await resp.json()
+        await msg.answer(f"🗑 Задача {todo_id} удалена!")
+    except:
+        await msg.answer("❌ Используйте: /delete 1")
