@@ -1,8 +1,12 @@
 import asyncio
 import logging
+import sys
+import os
+sys.path.append(os.path.dirname(__file__))
+
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
-from cobalt import BOT_TOKEN
+from config import BOT_TOKEN  # ← config.py, НЕ cobalt!
 from handlers import router
 
 async def main():
