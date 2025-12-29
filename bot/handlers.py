@@ -20,6 +20,7 @@ def get_main_menu():
         [InlineKeyboardButton(text="📋 Мои TODO", callback_data="my_todos")],
         [InlineKeyboardButton(text="➕ Новый TODO", callback_data="add_todo")],
         [InlineKeyboardButton(text="📊 Статистика", callback_data="stats")],
+        [InlineKeyboardButton(text="👤 Создать user", callback_data="create_user")],  # ← НОВОЕ!
         [InlineKeyboardButton(text="👥 Пользователи", callback_data="users")],
         [InlineKeyboardButton(text="🔄 Health", callback_data="health")],
         [InlineKeyboardButton(text="⚙️ Управление", callback_data="manage")]
@@ -161,3 +162,19 @@ async def cmd_delete(msg: Message):
         await msg.answer(f"🗑 Задача {todo_id} удалена!")
     except:
         await msg.answer("❌ Используйте: /delete 1")
+
+@router.callback_query(F.data == "create_user")
+async def create_user_cb(callback: CallbackQuery):
+    async with aiohttp.ClientSession() as session:
+        async with session.post(f"{APP_URL}/users", json={
+            "name": "Telegram Bot User",
+            "email": f"bot_{callback.from_user.id}@example.com"
+        }) as resp:
+            result = await resp.json()
+    
+    await callback.message.edit_text(
+        f"✅ Пользователь создан!\n<code>{json.dumps(result, indent=2)}</code>",
+        reply_markup=get_main_menu(),
+        parse_mode="HTML"
+    )
+    await callback.answer()
