@@ -9,6 +9,7 @@ RUN pip install -r requirements.txt
 # RUN apt-get update && apt-get install sqlite3 && rm -rf /var/lib/apt/lists/*
 
 COPY schema.sql app.py ./
+COPY . .
 
 EXPOSE 5000
 

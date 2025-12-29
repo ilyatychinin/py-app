@@ -1,1 +1,0 @@
-bot/config.py
