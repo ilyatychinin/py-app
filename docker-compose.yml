@@ -9,8 +9,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy  # ← Ждет healthcheck
-    deploy:
-      replicas: 1
   nginx:
     container_name: py-app-proxy
     image: nginx:alpine
@@ -18,8 +16,6 @@ services:
       - "8080:80"
     volumes:
       - ./nging.conf:/etc/nginx/conf.d/default.conf:ro
-    deploy:
-      replicas: 3
     depends_on:
       - app
   postgres:
@@ -38,8 +34,6 @@ services:
       interval: 2s
       timeout: 5s
       retries: 10
-    deploy:
-      replicas: 2
   bot:
     build:
       context: .
@@ -50,10 +44,7 @@ services:
       - app
       - postgres
     volumes:
-      - .:/app
-    deploy:
-      replicas: 1
-
+    - .:/app
     
 volumes:
   postgres_data:
