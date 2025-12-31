@@ -1,9 +1,11 @@
+version: "3.8"
+
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: py-app
+    # container_name: py-app
     ports:
       - "5000:5000"
     depends_on:
@@ -12,7 +14,7 @@ services:
     deploy:
       replicas: 1
   nginx:
-    container_name: py-app-proxy
+    # container_name: py-app-proxy
     image: nginx:alpine
     ports:
       - "8080:80"
@@ -23,7 +25,7 @@ services:
     depends_on:
       - app
   postgres:
-    container_name: py-app-db
+    # container_name: py-app-db
     image: postgres:18
     environment:
       - POSTGRES_USER=admin
