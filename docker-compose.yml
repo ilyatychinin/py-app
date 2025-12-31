@@ -41,7 +41,7 @@ services:
       timeout: 5s
       retries: 10
     deploy:
-      replicas: 2
+      replicas: 1
   bot:
     build:
       context: .
