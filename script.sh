@@ -6,8 +6,8 @@ echo "выполняем гит пул"
 git pull origin main
 
 echo "останавливаем сервисы"
-docker compose down -v 
-sleep 3
+#docker compose down -v 
+#sleep 3
 
 echo "собираем новый имэдж"
 docker compose build 
