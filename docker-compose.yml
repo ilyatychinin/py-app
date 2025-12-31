@@ -2,15 +2,12 @@ version: "3.8"
 
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
+    image: my-python-app-app:latest
     # container_name: py-app
     ports:
       - "5000:5000"
     depends_on:
-      - postgres
-        # condition: service_healthy  # ← Ждет healthcheck
+      - postgres # condition: service_healthy  # ← Ждет healthcheck
     deploy:
       replicas: 1
   nginx:
@@ -43,9 +40,7 @@ services:
     deploy:
       replicas: 1
   bot:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
+    image: my-python-app-bot:latest
     command: python -m bot.main
     env_file: .env
     depends_on:
