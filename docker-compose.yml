@@ -39,6 +39,9 @@ services:
       retries: 10
     deploy:
       replicas: 1
+      placement:
+        constraints:
+          - node.hostname == debianServer  # ← Только debianServer!
   bot:
     image: 192.168.0.240:6000/my-python-app-bot:latest
     command: python -m bot.main
@@ -54,8 +57,5 @@ services:
     
 volumes:
   postgres_data:
-    driver: nfs
-    driver_opts:
-      share: "192.168.0.240:/export/postgres"
-      o: "addr=192.168.0.240,rw,nfsvers=4"
+    driver: local
     
