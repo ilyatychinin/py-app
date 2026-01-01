@@ -54,4 +54,8 @@ services:
     
 volumes:
   postgres_data:
+    driver: nfs
+    driver_opts:
+      share: "192.168.0.240:/export/postgres"
+      o: "addr=192.168.0.240,rw,nfsvers=4"
     
