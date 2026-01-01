@@ -46,8 +46,8 @@ services:
     depends_on:
       - app
       - postgres
-    volumes:
-      - .:/app
+    # volumes:
+    #   - .:/app
     deploy:
       replicas: 1
 
