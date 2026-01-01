@@ -43,7 +43,7 @@ services:
         constraints:
           - node.hostname == debianServer  # ← Только debianServer!
   bot:
-    image: 192.168.0.240:6000/py-app-bot
+    image: 192.168.0.240:6000/py-app-bot:v2
     command: python -m bot.main
     env_file: .env
     depends_on:
