@@ -133,3 +133,38 @@ jobs:
         run: |
           docker compose -f docker-compose.ci.yml down -v
           docker image rm py-app-test py-nginx-test py-bot-test || true
+  deploy:
+    needs: ci
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "🚀 Deploying from GitHub..."
+            
+            cd /home/ilyatychinin/devops_train_projects/my-python-app || {
+              echo "❌ Directory not found!"
+              exit 1
+            }
+            
+            git pull origin main
+            
+            docker compose down
+            docker compose pull || echo "No registry images"
+            docker compose up -d
+            
+            sleep 10
+            
+            # Финальная проверка
+            curl -f http://localhost:8080/health || echo "⚠️ Health check failed"
+            docker compose ps
+            
+            echo "✅ Deploy complete at $(date)"
+  
