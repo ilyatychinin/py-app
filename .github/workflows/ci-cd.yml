@@ -101,6 +101,11 @@ jobs:
         run: |
           echo "🧪 Testing through Nginx (port 8080):"
           
+          # 1. Создать пользователя (если нет)
+          curl -fs -X POST http://localhost:8080/users \
+            -H "Content-Type: application/json" \
+            -d '{"name":"CI User", "email":"ci@test.com"}'
+
           # Health через nginx
           curl -fs http://localhost:8080/health
           
