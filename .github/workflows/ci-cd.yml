@@ -136,32 +136,29 @@ jobs:
   deploy:
     needs: ci
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted  # ← Ваш локальный runner
     steps:
       - uses: actions/checkout@v4
-      
-      - name: 🚀 Deploy via Cloudflare Tunnel
-        uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          port: 22
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            echo "🚀 GitHub → Cloudflare → Server deploy!"
-            
-            cd ~/devops_train_projects/my-python-app || exit 1
-            
-            git pull origin main
-            
-            docker compose down
-            
-            docker compose up -d
-            
-            sleep 10
-            
-            curl -f http://localhost:8080/health || echo "Health check failed"
-            
-            docker compose ps
-            
-            echo "✅ Deploy complete!"
+          path: my-python-app  # Checkout в поддиректорию
+
+      - name: 🚀 Local Deploy
+        run: |
+          echo "🚀 Self-hosted deploy на localhost!"
+          
+          cd /home/ilyatychinin/devops_train_projects/my-python-app || exit 1
+          
+          git pull origin main
+          
+          docker compose down
+          
+          docker compose up -d
+          
+          sleep 10
+          
+          curl -f http://localhost:8080/health || echo "Health check failed"
+          
+          docker compose ps
+          
+          echo "✅ Deploy complete!"
+
