@@ -5,15 +5,15 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - postgres:
-          condition: service_healthy  # ← Ждет healthcheck
+      postgres:
+        condition: service_healthy  # ← Ждет healthcheck
   nginx:
     container_name: py-app-proxy
     image: 192.168.0.240:6000/my-nginx:latest
     ports:
       - "8080:80"
     depends_on:
-      - app
+      app
   postgres:
     container_name: py-app-db
     image: postgres:18
@@ -35,8 +35,8 @@ services:
     command: python -m bot.main
     env_file: .env
     depends_on:
-      - app
-      - postgres
+      app
+      postgres
     
 volumes:
   postgres_data:
