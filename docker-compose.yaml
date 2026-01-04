@@ -13,7 +13,7 @@ services:
     ports:
       - "8080:80"
     depends_on:
-      app
+      - app
   postgres:
     container_name: py-app-db
     image: postgres:18
