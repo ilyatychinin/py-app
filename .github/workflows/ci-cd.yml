@@ -85,7 +85,7 @@ jobs:
       - name: Wait for services
         run: |
           echo "Waiting for Postgres..."
-          docker-compose -f docker-compose.ci.yml exec -T postgres pg_isready -U admin -d myapp
+          docker compose -f docker-compose.ci.yml exec -T postgres pg_isready -U admin -d myapp
           
           echo "Waiting for Nginx..."
           for i in {1..30}; do
@@ -119,12 +119,12 @@ jobs:
         if: failure()
         run: |
           echo "===== Logs ====="
-          docker-compose -f docker-compose.ci.yml logs app
-          docker-compose -f docker-compose.ci.yml logs nginx
-          docker-compose -f docker-compose.ci.yml logs postgres
+          docker compose -f docker-compose.ci.yml logs app
+          docker compose -f docker-compose.ci.yml logs nginx
+          docker compose -f docker-compose.ci.yml logs postgres
 
       - name: Cleanup
         if: always()
         run: |
-          docker-compose -f docker-compose.ci.yml down -v
+          docker compose -f docker-compose.ci.yml down -v
           docker image rm py-app-test py-nginx-test py-bot-test || true
