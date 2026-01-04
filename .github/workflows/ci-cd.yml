@@ -1,4 +1,4 @@
-name: Simple CI for TODO
+name: Simple CI with Docker Compose
 
 on:
   push:
@@ -10,21 +10,6 @@ jobs:
   ci:
     runs-on: ubuntu-latest
 
-    services:
-      db:
-        image: postgres:18
-        env:
-          POSTGRES_DB: myapp
-          POSTGRES_USER: admin
-          POSTGRES_PASSWORD: admin
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U admin -d myapp"
-          --health-interval=5s
-          --health-timeout=3s
-          --health-retries=10
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,64 +19,108 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install deps
+      - name: Syntax check
         run: |
-          pip install -r requirements.txt
+          python -m py_compile $(find . -name "*.py" -not -path "./.git/*")
 
-      - name: Syntax check (py_compile)
+      - name: Build ALL images locally (app, nginx, bot)
         run: |
-          python -m py_compile $(git ls-files "*.py")
+          # Собираем app из Dockerfile.dev
+          docker build -f Dockerfile.dev -t py-app-test .
+          
+          # Собираем nginx
+          docker build -f Dockerfile.nginx -t py-nginx-test .
+          
+          # Собираем bot
+          docker build -f Dockerfile.bot -t py-bot-test .
 
-      # ---- Build Docker image из Dockerfile.dev ----
-      - name: Build backend image
+      # ← КЛЮЧЕВОЙ МОМЕНТ: запускаем docker-compose!
+      - name: Start full stack with docker-compose
         run: |
-          docker build -t todo-app-test -f Dockerfile.dev .
+          # Создаём временный docker-compose.yml для CI
+          cat > docker-compose.ci.yml << EOF
+          services:
+            postgres:
+              image: postgres:18
+              environment:
+                POSTGRES_USER: admin
+                POSTGRES_PASSWORD: admin  
+                POSTGRES_DB: myapp
+              healthcheck:
+                test: ["CMD-SHELL", "pg_isready -U admin -d myapp"]
+                interval: 5s
+                timeout: 5s
+                retries: 10
+            
+            app:
+              image: py-app-test  # ← наш собранный образ!
+              ports:
+                - "5000:5000"
+              depends_on:
+                postgres:
+                  condition: service_healthy
+              environment:
+                DATABASE_URL: postgresql://admin:admin@postgres:5432/myapp
+            
+            nginx:
+              image: py-nginx-test
+              ports:
+                - "8080:80"
+              depends_on:
+                - app
+            
+            bot:
+              image: py-bot-test
+              depends_on:
+                - app
+          EOF
 
-      # ---- Запуск контейнера с backend ----
-      - name: Run backend container
-        run: |
-          docker run -d \
-            --name todo-app \
-            -e DATABASE_URL=postgresql://user:pass@db:5432/todo \
-            --network host \
-            todo-app-test
+          # Запускаем!
+          docker-compose -f docker-compose.ci.yml up -d
 
-      # ---- Ждём, пока FastAPI поднимется ----
-      - name: Wait for backend
+      - name: Wait for services
         run: |
-          for i in {1..20}; do
-            if curl -fsS http://127.0.0.1:5000/health >/dev/null 2>&1; then
-              echo "Backend is up!"
-              exit 0
+          echo "Waiting for Postgres..."
+          docker-compose -f docker-compose.ci.yml exec -T postgres pg_isready -U admin -d myapp
+          
+          echo "Waiting for Nginx..."
+          for i in {1..30}; do
+            if curl -fs http://localhost:8080/health >/dev/null 2>&1; then
+              echo "✅ Full stack is up!"
+              break
             fi
-            echo "Waiting for backend..."
-            sleep 2
-          done
-          echo "Backend did not start in time"
-          docker logs todo-app || true
-          exit 1
+            echo "Waiting... ($i/30)"
+            sleep 3
+          done || (echo "Services not ready" && exit 1)
 
-      # ---- Простые curl-тесты API ----
-      - name: API tests with curl
+      - name: Test full API through Nginx
         run: |
-          set -e
-
-          echo "Health check:"
-          curl -fsS http://127.0.0.1:5000/health | jq .
-
-          echo "Stats check:"
-          curl -fsS http://127.0.0.1:5000/stats | jq .
-
-          echo "Create test TODO:"
-          curl -fsS -X POST http://127.0.0.1:5000/todos \
+          echo "🧪 Testing through Nginx (port 8080):"
+          
+          # Health через nginx
+          curl -fs http://localhost:8080/health
+          
+          # Stats через nginx  
+          curl -fs http://localhost:8080/stats
+          
+          # Создать TODO через nginx
+          curl -fs -X POST http://localhost:8080/todos \
             -H "Content-Type: application/json" \
-            -d '{"user_id": 1, "task": "test from CI", "completed": false}' | jq .
+            -d '{"user_id":1, "task":"CI test task", "completed":false}'
+          
+          # Получить todos
+          curl -fs http://localhost:8080/todos
 
-          echo "Get todos:"
-          curl -fsS http://127.0.0.1:5000/todos | jq .
-
-      - name: Show backend logs on failure
+      - name: Show logs if failed
         if: failure()
         run: |
-          echo "===== Backend logs ====="
-          docker logs todo-app || true
+          echo "===== Logs ====="
+          docker-compose -f docker-compose.ci.yml logs app
+          docker-compose -f docker-compose.ci.yml logs nginx
+          docker-compose -f docker-compose.ci.yml logs postgres
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker-compose -f docker-compose.ci.yml down -v
+          docker image rm py-app-test py-nginx-test py-bot-test || true
