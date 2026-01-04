@@ -1,3 +1,40 @@
+name: Simple CI with Docker Compose
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Syntax check
+        run: |
+          python -m py_compile $(find . -name "*.py" -not -path "./.git/*")
+
+      - name: Build ALL images locally (app, nginx, bot)
+        run: |
+          # Собираем app из Dockerfile.dev
+          docker build -f Dockerfile.dev -t py-app-test .
+          
+          # Собираем nginx
+          docker build -f Dockerfile.nginx -t py-nginx-test .
+          
+          # Собираем bot
+          docker build -f Dockerfile.bot -t py-bot-test .
+
+      # ← КЛЮЧЕВОЙ МОМЕНТ: запускаем docker-compose!
       - name: Start full stack with docker compose v2
         run: |
           # Создаём docker-compose.ci.yml (тот же)
@@ -43,3 +80,51 @@
           
           echo "Waiting for Nginx..."
           timeout 60 bash -c 'until curl -fs http://localhost:8080/health; do echo "Waiting..."; sleep 3; done' || exit 1
+
+
+      - name: Wait for services
+        run: |
+          echo "Waiting for Postgres..."
+          docker-compose -f docker-compose.ci.yml exec -T postgres pg_isready -U admin -d myapp
+          
+          echo "Waiting for Nginx..."
+          for i in {1..30}; do
+            if curl -fs http://localhost:8080/health >/dev/null 2>&1; then
+              echo "✅ Full stack is up!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 3
+          done || (echo "Services not ready" && exit 1)
+
+      - name: Test full API through Nginx
+        run: |
+          echo "🧪 Testing through Nginx (port 8080):"
+          
+          # Health через nginx
+          curl -fs http://localhost:8080/health
+          
+          # Stats через nginx  
+          curl -fs http://localhost:8080/stats
+          
+          # Создать TODO через nginx
+          curl -fs -X POST http://localhost:8080/todos \
+            -H "Content-Type: application/json" \
+            -d '{"user_id":1, "task":"CI test task", "completed":false}'
+          
+          # Получить todos
+          curl -fs http://localhost:8080/todos
+
+      - name: Show logs if failed
+        if: failure()
+        run: |
+          echo "===== Logs ====="
+          docker-compose -f docker-compose.ci.yml logs app
+          docker-compose -f docker-compose.ci.yml logs nginx
+          docker-compose -f docker-compose.ci.yml logs postgres
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker-compose -f docker-compose.ci.yml down -v
+          docker image rm py-app-test py-nginx-test py-bot-test || true
