@@ -147,7 +147,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            echo "🚀 Deploying from GitHub..."
+            echo "🚀 Deploying from GitHub.."
             
             cd /home/ilyatychinin/devops_train_projects/my-python-app || {
               echo "❌ Directory not found!"
