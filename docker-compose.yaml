@@ -35,8 +35,8 @@ services:
     command: python -m bot.main
     env_file: .env
     depends_on:
-      app
-      postgres
+      - app
+      - postgres
     
 volumes:
   postgres_data:
