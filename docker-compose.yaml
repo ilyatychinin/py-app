@@ -1,25 +1,21 @@
 services:
   app:
     image: 192.168.0.240:6000/my-python-app-app:latest
-    # container_name: py-app
+    container_name: py-app
     ports:
       - "5000:5000"
     depends_on:
       - postgres:
           condition: service_healthy  # ← Ждет healthcheck
-    # deploy:
-    #   replicas: 1
   nginx:
-    # container_name: py-app-proxy
+    container_name: py-app-proxy
     image: 192.168.0.240:6000/my-nginx:latest
     ports:
       - "8080:80"
-    # deploy:
-    #   replicas: 3
     depends_on:
       - app
   postgres:
-    # container_name: py-app-db
+    container_name: py-app-db
     image: postgres:18
     environment:
       - POSTGRES_USER=admin
@@ -34,11 +30,6 @@ services:
       interval: 2s
       timeout: 5s
       retries: 10
-    # deploy:
-    #   replicas: 1
-    #   placement:
-    #     constraints:
-    #       - node.hostname == debianServer  # ← Только debianServer!
   bot:
     image: 192.168.0.240:6000/py-app-bot:v2
     command: python -m bot.main
@@ -46,13 +37,7 @@ services:
     depends_on:
       - app
       - postgres
-    # volumes:
-    #   - .:/app
-    # deploy:
-    #   replicas: 1
-
     
 volumes:
   postgres_data:
-    driver: local
     
