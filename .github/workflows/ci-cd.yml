@@ -76,7 +76,7 @@ jobs:
           EOF
 
           # Запускаем!
-          docker-compose -f docker-compose.ci.yml up -d
+          docker-compose up -d -f docker-compose.ci.yml 
 
       - name: Wait for services
         run: |
