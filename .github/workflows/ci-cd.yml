@@ -1,0 +1,97 @@
+name: Simple CI for TODO
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: postgres:18
+        env:
+          POSTGRES_DB: myapp
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: admin
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U admin -d myapp"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: |
+          pip install -r requirements.txt
+
+      - name: Syntax check (py_compile)
+        run: |
+          python -m py_compile $(git ls-files "*.py")
+
+      # ---- Build Docker image из Dockerfile.dev ----
+      - name: Build backend image
+        run: |
+          docker build -t todo-app-test -f Dockerfile.dev .
+
+      # ---- Запуск контейнера с backend ----
+      - name: Run backend container
+        run: |
+          docker run -d \
+            --name todo-app \
+            -e DATABASE_URL=postgresql://user:pass@db:5432/todo \
+            --network host \
+            todo-app-test
+
+      # ---- Ждём, пока FastAPI поднимется ----
+      - name: Wait for backend
+        run: |
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:5000/health >/dev/null 2>&1; then
+              echo "Backend is up!"
+              exit 0
+            fi
+            echo "Waiting for backend..."
+            sleep 2
+          done
+          echo "Backend did not start in time"
+          docker logs todo-app || true
+          exit 1
+
+      # ---- Простые curl-тесты API ----
+      - name: API tests with curl
+        run: |
+          set -e
+
+          echo "Health check:"
+          curl -fsS http://127.0.0.1:5000/health | jq .
+
+          echo "Stats check:"
+          curl -fsS http://127.0.0.1:5000/stats | jq .
+
+          echo "Create test TODO:"
+          curl -fsS -X POST http://127.0.0.1:5000/todos \
+            -H "Content-Type: application/json" \
+            -d '{"user_id": 1, "task": "test from CI", "completed": false}' | jq .
+
+          echo "Get todos:"
+          curl -fsS http://127.0.0.1:5000/todos | jq .
+
+      - name: Show backend logs on failure
+        if: failure()
+        run: |
+          echo "===== Backend logs ====="
+          docker logs todo-app || true
