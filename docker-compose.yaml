@@ -1,6 +1,8 @@
 services:
   app:
-    image: 192.168.0.240:6000/my-python-app-app:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
     container_name: py-app
     ports:
       - "5000:5000"
@@ -8,8 +10,10 @@ services:
       postgres:
         condition: service_healthy  # ← Ждет healthcheck
   nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
     container_name: py-app-proxy
-    image: 192.168.0.240:6000/my-nginx:latest
     ports:
       - "8080:80"
     depends_on:
@@ -31,7 +35,9 @@ services:
       timeout: 5s
       retries: 10
   bot:
-    image: 192.168.0.240:6000/py-app-bot:v2
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
     command: python -m bot.main
     env_file: .env
     depends_on:
