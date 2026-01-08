@@ -78,6 +78,7 @@ services:
 
 secrets:
   grafana_smtp_pass:
+    external: true
 
 volumes:
   postgres_data:
