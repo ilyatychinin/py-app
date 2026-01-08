@@ -6,9 +6,11 @@ from datetime import datetime
 from typing import List, Optional
 import time
 from psycopg2 import OperationalError
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI(title="TODO API", version="1.0.0")
 
+instrumentator = Instrumentator().instrument(app).expose(app)
 # ===== Models =====
 class UserCreate(BaseModel):
     name: str
