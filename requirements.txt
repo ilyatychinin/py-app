@@ -6,3 +6,4 @@ pydantic[email]==2.5.0
 aiogram==3.13.1
 python-dotenv==1.0.1
 aiohttp==3.10.5
+prometheus-fastapi-instrumentator
