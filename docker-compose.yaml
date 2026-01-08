@@ -44,6 +44,17 @@ services:
       - app
       - postgres
     
+  prometheus:
+    image: prom/prometheus
+    container_name: py-app-metrics
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'  
+    restart: unless-stopped
 volumes:
   postgres_data:
     
