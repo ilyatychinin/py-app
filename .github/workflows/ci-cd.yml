@@ -135,7 +135,7 @@ jobs:
           docker image rm py-app-test py-nginx-test py-bot-test || true
   deploy:
     needs: ci
-    if: github.ref == 'refs/heads/main'
+    if: always() && (needs.ci.result == 'success')
     runs-on: self-hosted  # ← Ваш локальный runner
     steps:
       - uses: actions/checkout@v4
