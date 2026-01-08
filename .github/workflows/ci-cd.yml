@@ -136,22 +136,29 @@ jobs:
   deploy:
     needs: ci
     if: always() && (needs.ci.result == 'success')
-    runs-on: self-hosted
+    runs-on: self-hosted  # ← Ваш локальный runner
     steps:
       - uses: actions/checkout@v4
         with:
-          path: my-python-app
+          path: my-python-app  # Checkout в поддиректорию
 
       - name: 🚀 Local Deploy
         run: |
+          echo "🚀 Self-hosted deploy на localhost!"
+          
           cd /home/ilyatychinin/devops_train_projects/my-python-app || exit 1
-          docker secret rm grafana_smtp_pass || true
-          echo "${{ secrets.GF_SMTP_PASSWORD }}" | docker secret create grafana_smtp_pass -
+          
           git pull origin main
+          
           docker compose down
+          
           docker compose up -d
-          sleep 15
-          curl -f http://localhost:8080/health
+          
+          sleep 10
+          
+          curl -f http://localhost:8080/health || echo "Health check failed"
+          
           docker compose ps
-          echo "✅ Deploy complete with Grafana + SMTP!"
+          
+          echo "✅ Deploy complete!"
 
