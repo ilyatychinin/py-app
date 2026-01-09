@@ -172,7 +172,5 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
       - name: Deliver code via rsync
-        run: |
-          rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" \
-          ./ \                          
-          ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/deploy/myapp/  
+        run: rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/deploy/myapp/
+
