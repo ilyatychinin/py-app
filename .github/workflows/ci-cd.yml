@@ -133,7 +133,7 @@ jobs:
         run: |
           docker compose -f docker-compose.ci.yml down -v
           docker image rm py-app-test py-nginx-test py-bot-test || true
-  deploy local:
+  localDeploy:
     needs: ci
     if: always() && (needs.ci.result == 'success')
     runs-on: self-hosted  # ← Ваш локальный runner
