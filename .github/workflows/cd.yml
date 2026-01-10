@@ -1,4 +1,5 @@
-name: CD(deploy)
+name: CD
+
 on:
   push:
     branches: [ main ]
@@ -7,8 +8,6 @@ on:
 
 jobs:
   cd:
-    needs: ci
-    if: always() && (needs.ci.result == 'success')
     runs-on: self-hosted  # ← Ваш локальный runner
     steps:
       - uses: actions/checkout@v4
