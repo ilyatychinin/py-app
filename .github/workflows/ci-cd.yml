@@ -1,4 +1,4 @@
-name: Simple CI/CD
+name: CI
 
 on:
   push:
@@ -133,7 +133,7 @@ jobs:
         run: |
           docker compose -f docker-compose.ci.yml down -v
           docker image rm py-app-test py-nginx-test py-bot-test || true
-  localDeploy:
+  cd:
     needs: ci
     if: always() && (needs.ci.result == 'success')
     runs-on: self-hosted  # ← Ваш локальный runner
@@ -161,16 +161,4 @@ jobs:
           docker compose ps
           
           echo "✅ Deploy complete!"
-  deliver:
-    needs: ci
-    if: always() && (needs.ci.result == 'success')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4 
-      - uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-      - name: Deliver code via rsync
-        run: rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/deploy/myapp/
 
