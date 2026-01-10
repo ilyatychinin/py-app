@@ -133,32 +133,5 @@ jobs:
         run: |
           docker compose -f docker-compose.ci.yml down -v
           docker image rm py-app-test py-nginx-test py-bot-test || true
-  cd:
-    needs: ci
-    if: always() && (needs.ci.result == 'success')
-    runs-on: self-hosted  # ← Ваш локальный runner
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          path: my-python-app  # Checkout в поддиректорию
 
-      - name: 🚀 Local Deploy
-        run: |
-          echo "🚀 Self-hosted deploy на localhost!"
-          
-          cd /home/ilyatychinin/devops_train_projects/my-python-app || exit 1
-          
-          git pull origin main
-          
-          docker compose down
-          
-          docker compose up -d
-          
-          sleep 10
-          
-          curl -f http://localhost:8080/health || echo "Health check failed"
-          
-          docker compose ps
-          
-          echo "✅ Deploy complete!"
 
