@@ -15,6 +15,7 @@ WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 
 COPY bot/ .
+COPY .env . 
 
 ENV PATH="/opt/venv/bin:$PATH"
 
