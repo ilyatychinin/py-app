@@ -1,2 +1,3 @@
 .gitignore
 pass.txt
+.env
