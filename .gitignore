@@ -1,3 +1,4 @@
 .gitignore
 pass.txt
 .env
+docker-compose-swarm.yml
