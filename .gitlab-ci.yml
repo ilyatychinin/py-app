@@ -17,6 +17,7 @@ build-job:       # This job runs in the build stage, which runs first.
 test-host-net:
   stage: test
   script:
+    - apk add curl
     - curl localhost:8090
 
 test-job:   # This job runs in the test stage.
