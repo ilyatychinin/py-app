@@ -1,6 +1,6 @@
 services:
   app:
-    image: py-app-backend:v1-CI
+    image: py-app-app:v1-CI
     container_name: py-app
     ports:
       - "5000:5000"
