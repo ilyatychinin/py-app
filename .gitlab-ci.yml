@@ -9,7 +9,7 @@ build-job:       # This job runs in the build stage, which runs first.
       - ls -la 
       - docker image build -t py-app-bot:v1-CI -f Dockerfile.bot .
       - docker image build -t py-app-proxy:v1-CI -f Dockerfile.nginx .
-      - docker image build -t py-app-app:v1-CI -f Dockerfile.app .
+      - docker image build -t py-app-app:v1-CI -f Dockerfile.dev .
       - docker image build -t py-app-tests:v1-CI -f Dockerfile.tests .
 
 test-job:   # This job runs in the test stage.
