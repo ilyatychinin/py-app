@@ -19,6 +19,9 @@ test-job:   # This job runs in the test stage.
   script:
       - docker images
       - docker compose up -d
+      - sleep 2
+      - docker compose ps -a
+      - sleep 10
       - docker compose logs tests 
       
 
