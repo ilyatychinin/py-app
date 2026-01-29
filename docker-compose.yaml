@@ -38,13 +38,25 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.bot
-    command: python -m bot.main
+   # command: python -m bot.main
     env_file: .env
     depends_on:
       - app
       - postgres
-    
-  # prometheus:
+
+  tests:
+    container_name: py-app-tests
+    build:
+      context: . 
+      dockerfile: Dockerfile.tests
+    ports:
+      - "5001:5001"
+    command: >
+      sh -c "cd /app/tests && 
+             python -m pytest test_api.py -v"  # Только тесты API!
+    depends_on:
+      - app 
+  #   prometheus:
   #   image: prom/prometheus
   #   container_name: py-app-metrics
   #   ports:
