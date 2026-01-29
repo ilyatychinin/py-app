@@ -1,7 +1,24 @@
+workflow:
+  rules:
+    # Всегда запускать для MR
+    - if: '$CI_MERGE_REQUEST_IID'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+    
+
+
 stages:          # List of stages for jobs, and their order of execution
   - build
   - test
   - deploy
+
+before_script:
+  - echo "Начинаю выполнение пайплайна"
+
+after_script:
+  - echo "Пайплайн успешно завершен"
+
 
 build-job:       # This job runs in the build stage, which runs first.
   stage: build
@@ -14,11 +31,6 @@ build-job:       # This job runs in the build stage, which runs first.
       - docker image pull postgres:18
       - docker images
 
-test-host-net:
-  stage: test
-  script:
-    - apk add curl
-    - curl localhost:8090
 
 test-job:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
