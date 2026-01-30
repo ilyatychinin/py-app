@@ -71,6 +71,7 @@ test-job:   # This job runs in the test stage.
 
       - echo "Запускаю тесты"
       - docker container run -d --name testing-py-app -p 5001:5001 --network=py-app_default py-app-tests:v1-CI
+      - sleep 7
       - docker container logs testing-py-app >> log-tests.txt
       - cat log-tests.txt
       
