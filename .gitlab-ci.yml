@@ -137,7 +137,7 @@ deploy-job:      # This job runs in the deploy stage.
 
       
       # ИЛИ добавляем хост в known_hosts
-      ssh-keyscan 192.168.0.239 >> ~/.ssh/known_hosts
+      ssh-keyscan gitlab >> ~/.ssh/known_hosts
       chmod 644 ~/.ssh/known_hosts
       
       echo "Ключ создан, настраиваю подключение..."
@@ -146,9 +146,9 @@ deploy-job:      # This job runs in the deploy stage.
       ls -la
       
       echo -e "\n=== Информация о сервере ==="
-      ssh ilyatychinin@192.168.0.239 "echo 'Текущий пользователь:' && whoami"
-      ssh ilyatychinin@192.168.0.239 "echo 'Домашняя директория:' && pwd"
-      ssh ilyatychinin@192.168.0.239 "echo 'Содержимое домашней директории:' && ls -la ~/"
+      ssh ilyatychinin@gitlab "echo 'Текущий пользователь:' && whoami"
+      ssh ilyatychinin@gitlab "echo 'Домашняя директория:' && pwd"
+      ssh ilyatychinin@gitlab "echo 'Содержимое домашней директории:' && ls -la ~/"
   # - echo "Настраиваем окружение для подключения"
   # - mkdir -p ~/.ssh
   # - chmod 700 ~/.ssh
