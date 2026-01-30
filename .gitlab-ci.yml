@@ -23,7 +23,9 @@ after_script:
   - echo "Пайплайн успешно завершен"
 
 
-build-job:       # This job runs in the build stage, which runs first.
+build-job:
+  tags:
+    - shell      
   stage: build
   script:
       - ls -la 
