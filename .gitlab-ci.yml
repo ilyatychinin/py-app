@@ -158,12 +158,12 @@ deploy-job:      # This job runs in the deploy stage.
       ls -la ~/
       
       echo "Переходим в workdir/py-app"
-      cd ~/workdir/py-app || exit 1
+      cd /home/ilyatychinin/workdir/py-app-test-clone/py-app || exit 1
       echo "Текущая директория: $(pwd)"
       ls -la
       
       echo "Git источник правды - берем актуальный код"
-      git pull origin develop
+      git pull origin main
       
       echo "...=====Deploying app=====..."
       docker compose up -d postgres app bot nginx
