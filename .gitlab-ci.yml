@@ -58,6 +58,7 @@ test-job:   # This job runs in the test stage.
       - docker compose ps -a
 
       - echo "Для лога смотрю сеть приложения"
+      - apk add jq
       - docker container inspect py-app | jq '.[0].NetworkSettings.Networks' >> log.txt
       - cat log.txt
 
