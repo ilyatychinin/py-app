@@ -10,7 +10,7 @@ variables:
   CICD_VERSION: v1.0
   LOG_FILE_NAME: log.txt
   LOG_TESTS_FILE_NAME: log-tests.txt
-
+  LOG_DEPLOY_FILE_NAME: log-deploy.txt
 stages:          # List of stages for jobs, and their order of execution
   - build
   - test
@@ -84,17 +84,32 @@ test-job:   # This job runs in the test stage.
 
 
 
-# deploy-job:      # This job runs in the deploy stage.
-#  stage: deploy  
-#  environment: staging
-#  script:
-#   - echo "Подключаемся на сервер для деплоя"
-#   - ssh ilyatychinin@gitlab
+deploy-job:      # This job runs in the deploy stage.
+ stage: deploy  
+ environment: staging
+ script:
+  - echo "Подключаемся на сервер для деплоя"
+  - ssh ilyatychinin@gitlab
 
-#   - echo "Переходим в репозиторий"
-#   - cd workdir/py-app
-#   - ls -la
+  - echo "Переходим в репозиторий"
+  - cd workdir/py-app
+  - ls -la
 
-#   - echo "Git источник правды - берем актуальный код от туда"
-#   - git pull origin main
-#   - sleep 5
+  - echo "Git источник правды - берем актуальный код от туда"
+  - git pull origin main
+  - sleep 5
+
+  - echo "...=====Deploying app=====..."
+  - docker compose up -d postgres app bot nginx
+
+  - sleep 15
+
+  - echo "Проверяем запустилось ли приложение"
+  - docker compose ps -a 
+
+  - echo "Сохраняем логи"
+  - docker compose logs >> log-deploy.txt
+  
+  - echo "Выводим логи приложения"
+  - cat log-deploy.txt
+
