@@ -74,6 +74,8 @@ test-job:   # This job runs in the test stage.
       - sleep 7
       - docker container logs testing-py-app >> log-tests.txt
       - cat log-tests.txt
+      - docker container kill testing-py-app || echo "Контейнер уже завершен"
+      - docker container rm testing-py-app 
       
 
 
