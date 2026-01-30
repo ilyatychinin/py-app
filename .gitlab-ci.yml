@@ -50,6 +50,12 @@ test-job:   # This job runs in the test stage.
       - echo "Проверяю наличие всех images"
       - docker images
 
+      - echo "Убиваем старые попытки"
+      - pkill -f "docker-proxy.*5000"
+      - pkill -f "docker-proxy.*5432"
+      - pkill -f "docker-proxy.*8080"
+      - pkill -f "docker-proxy.*5001"
+
       - echo "Запускаем приложение"
       - docker compose up -d postgres app bot nginx
       - sleep 5
