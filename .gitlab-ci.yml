@@ -95,6 +95,12 @@ deploy-job:      # This job runs in the deploy stage.
   - echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_ed25519
   - chmod 600 ~/.ssh/id_ed25519
 
+  - echo -e "Host gitlab\n\tHostName gitlab\n\tUser ilyatychinin\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile /dev/null" > ~/.ssh/config
+  - chmod 600 ~/.ssh/config
+  # Тестируем подключение
+  - echo "Тестируем SSH подключение..."
+  - ssh ilyatychinin@gitlab "echo 'SSH подключение успешно!'"
+
   - echo "Подключаемся на сервер для деплоя"
   - ssh ilyatychinin@gitlab
 
