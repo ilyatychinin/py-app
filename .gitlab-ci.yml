@@ -144,7 +144,7 @@ deploy-job:      # This job runs in the deploy stage.
       
       # Тестируем подключение
       ssh -v ilyatychinin@192.168.0.239 "echo 'SSH подключение успешно!'"
-    - ls -la
+      ls -la
   # - echo "Настраиваем окружение для подключения"
   # - mkdir -p ~/.ssh
   # - chmod 700 ~/.ssh
