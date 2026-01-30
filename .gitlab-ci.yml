@@ -23,62 +23,62 @@ after_script:
   - echo "Пайплайн успешно завершен"
 
 
-# build-job:  
-#   stage: build
-#   script:
-#       - ls -la 
-#       - echo "Собираем образ для бота"
-#       - docker image build -t py-app-bot:v1-CI -f Dockerfile.bot .
+build-job:  
+  stage: build
+  script:
+      - ls -la 
+      - echo "Собираем образ для бота"
+      - docker image build -t py-app-bot:v1-CI -f Dockerfile.bot .
 
-#       - echo "Собираем образ для прокси-сервера"
-#       - docker image build -t py-app-proxy:v1-CI -f Dockerfile.nginx .
+      - echo "Собираем образ для прокси-сервера"
+      - docker image build -t py-app-proxy:v1-CI -f Dockerfile.nginx .
 
-#       - echo "Собираем образ для бекенда"
-#       - docker image build -t py-app-app:v1-CI -f Dockerfile.dev .
+      - echo "Собираем образ для бекенда"
+      - docker image build -t py-app-app:v1-CI -f Dockerfile.dev .
 
-#       - echo "Собираем образ для контейнера с тестами"
-#       - docker image build -t py-app-tests:v1-CI -f Dockerfile.tests .
+      - echo "Собираем образ для контейнера с тестами"
+      - docker image build -t py-app-tests:v1-CI -f Dockerfile.tests .
       
-#       - echo "Пуллим образ db"
-#       - docker image pull postgres:18
-#       - docker images
+      - echo "Пуллим образ db"
+      - docker image pull postgres:18
+      - docker images
 
 
-# test-job:   # This job runs in the test stage.
-#   stage: test    # It only starts when the job in the build stage completes successfully.
-#   script:
-#       - echo "Проверяю наличие всех images"
-#       - docker images
+test-job: 
+  stage: test   
+  script:
+      - echo "Проверяю наличие всех images"
+      - docker images
 
-#       - echo "Убиваем старые попытки"
-#       - docker compose down -v || echo "Контейнеры не были запущены"
-#       - pkill -f "docker-proxy.*5000" || echo "Процесс не найден, продолжаем"
-#       - pkill -f "docker-proxy.*5432" || echo "Процесс не найден, продолжаем"
-#       - pkill -f "docker-proxy.*8080" || echo "Процесс не найден, продолжаем"
-#       - pkill -f "docker-proxy.*5001" || echo "Процесс не найден, продолжаем"
+      - echo "Убиваем старые попытки"
+      - docker compose down -v || echo "Контейнеры не были запущены"
+      - pkill -f "docker-proxy.*5000" || echo "Процесс не найден, продолжаем"
+      - pkill -f "docker-proxy.*5432" || echo "Процесс не найден, продолжаем"
+      - pkill -f "docker-proxy.*8080" || echo "Процесс не найден, продолжаем"
+      - pkill -f "docker-proxy.*5001" || echo "Процесс не найден, продолжаем"
 
-#       - echo "Запускаем приложение"
-#       - docker compose up -d postgres app bot nginx
-#       - sleep 5
+      - echo "Запускаем приложение"
+      - docker compose up -d postgres app bot nginx
+      - sleep 5
 
-#       - echo "Проверяю запустились ли все нужные сервисы"
-#       - docker compose ps -a
+      - echo "Проверяю запустились ли все нужные сервисы"
+      - docker compose ps -a
 
-#       - echo "Для лога смотрю сеть приложения"
-#       - apk add jq
-#       - docker container inspect py-app | jq '.[0].NetworkSettings.Networks' >> log.txt
-#       - cat log.txt
+      - echo "Для лога смотрю сеть приложения"
+      - apk add jq
+      - docker container inspect py-app | jq '.[0].NetworkSettings.Networks' >> log.txt
+      - cat log.txt
 
-#       - echo "Запускаю тесты"
-#       - docker container run -d --name testing-py-app -p 5001:5001 --network=py-app_default py-app-tests:v1-CI
-#       - sleep 7
-#       - docker container logs testing-py-app >> log-tests.txt
-#       - cat log-tests.txt
+      - echo "Запускаю тесты"
+      - docker container run -d --name testing-py-app -p 5001:5001 --network=py-app_default py-app-tests:v1-CI
+      - sleep 7
+      - docker container logs testing-py-app >> log-tests.txt
+      - cat log-tests.txt
 
-#       - echo "Убираем мусор за собой"
-#       - docker container kill testing-py-app || echo "Контейнер уже завершен"
-#       - docker container rm testing-py-app 
-#       - docker compose down -v
+      - echo "Убираем мусор за собой"
+      - docker container kill testing-py-app || echo "Контейнер уже завершен"
+      - docker container rm testing-py-app 
+      - docker compose down -v
       
 
 
@@ -165,6 +165,9 @@ deploy-job:      # This job runs in the deploy stage.
       echo "Git источник правды - берем актуальный код"
       git pull origin main
       
+      echo "Убиваем старое приложение если оно было поднято"
+      docker compose down
+
       echo "...=====Deploying app=====..."
       docker compose up -d postgres app bot nginx
       
