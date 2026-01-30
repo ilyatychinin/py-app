@@ -149,41 +149,25 @@ deploy-job:      # This job runs in the deploy stage.
       ssh ilyatychinin@gitlab "echo 'Текущий пользователь:' && whoami"
       ssh ilyatychinin@gitlab "echo 'Домашняя директория:' && pwd"
       ssh ilyatychinin@gitlab "echo 'Содержимое домашней директории:' && ls -la ~/"
-  # - echo "Настраиваем окружение для подключения"
-  # - mkdir -p ~/.ssh
-  # - chmod 700 ~/.ssh
-  # # Декодируем ключ из base64
-  # - echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_ed25519
-  # - chmod 600 ~/.ssh/id_ed25519
-
-  # - echo -e "Host gitlab\n\tHostName gitlab\n\tUser ilyatychinin\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile /dev/null" > ~/.ssh/config
-  # - chmod 600 ~/.ssh/config
-  # # Тестируем подключение
-  # - echo "Тестируем SSH подключение..."
-  # - ssh ilyatychinin@gitlab "echo 'SSH подключение успешно!'"
-
-  # - echo "Подключаемся на сервер для деплоя"
-  # - ssh ilyatychinin@gitlab
-
-  # - echo "Переходим в репозиторий"
-  # - cd workdir/py-app
-  # - ls -la
-
-  # - echo "Git источник правды - берем актуальный код от туда"
-  # - git pull origin main
-  # - sleep 5
-
-  # - echo "...=====Deploying app=====..."
-  # - docker compose up -d postgres app bot nginx
-
-  # - sleep 15
-
-  # - echo "Проверяем запустилось ли приложение"
-  # - docker compose ps -a 
-
-  # - echo "Сохраняем логи"
-  # - docker compose logs >> log-deploy.txt
   
-  # - echo "Выводим логи приложения"
-  # - cat log-deploy.txt
+      ssh ilyatychinin@gitlab "echo "Переходим в репозиторий""
+      ssh ilyatychinin@gitlab "cd workdir/py-app"
+      ssh ilyatychinin@gitlab "ls -la"
 
+      ssh ilyatychinin@gitlab "echo "Git источник правды - берем актуальный код от туда""
+      ssh ilyatychinin@gitlab "git pull origin main"
+      ssh ilyatychinin@gitlab "sleep 5"
+
+      ssh ilyatychinin@gitlab "echo "...=====Deploying app=====...""
+      ssh ilyatychinin@gitlab "docker compose up -d postgres app bot nginx"
+
+      ssh ilyatychinin@gitlab "sleep 15"
+
+      ssh ilyatychinin@gitlab "echo "Проверяем запустилось ли приложение""
+      ssh ilyatychinin@gitlab "docker compose ps -a "
+
+      ssh ilyatychinin@gitlab "echo "Сохраняем логи""
+      ssh ilyatychinin@gitlab "docker compose logs >> log-deploy.txt"
+      
+      ssh ilyatychinin@gitlab "echo "Выводим логи приложения""
+      ssh ilyatychinin@gitlab "cat log-deploy.txt"
