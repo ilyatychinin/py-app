@@ -141,10 +141,14 @@ deploy-job:      # This job runs in the deploy stage.
       chmod 644 ~/.ssh/known_hosts
       
       echo "Ключ создан, настраиваю подключение..."
-      
-      # Тестируем подключение
-      ssh -v ilyatychinin@192.168.0.239 "echo 'SSH подключение успешно!'"
+      echo "=== Информация о контейнере раннера ==="
+      pwd
       ls -la
+      
+      echo -e "\n=== Информация о сервере ==="
+      ssh ilyatychinin@192.168.0.239 "echo 'Текущий пользователь:' && whoami"
+      ssh ilyatychinin@192.168.0.239 "echo 'Домашняя директория:' && pwd"
+      ssh ilyatychinin@192.168.0.239 "echo 'Содержимое домашней директории:' && ls -la ~/"
   # - echo "Настраиваем окружение для подключения"
   # - mkdir -p ~/.ssh
   # - chmod 700 ~/.ssh
