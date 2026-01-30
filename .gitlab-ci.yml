@@ -23,28 +23,30 @@ after_script:
   - echo "Пайплайн успешно завершен"
 
 
-build-job:  
-  stage: build
-  script:
-      - ls -la 
-      - echo "Собираем образ для бота"
-      - docker image build -t py-app-bot:v1-CI -f Dockerfile.bot .
+# build-job:  
+#   stage: build
+#   script:
+#       - ls -la 
+#       - echo "Собираем образ для бота"
+#       - docker image build -t py-app-bot:v1-CI -f Dockerfile.bot .
 
-      - echo "Собираем образ для прокси-сервера"
-      - docker image build -t py-app-proxy:v1-CI -f Dockerfile.nginx .
+#       - echo "Собираем образ для прокси-сервера"
+#       - docker image build -t py-app-proxy:v1-CI -f Dockerfile.nginx .
 
-      - echo "Собираем образ для бекенда"
-      - docker image build -t py-app-app:v1-CI -f Dockerfile.dev .
+#       - echo "Собираем образ для бекенда"
+#       - docker image build -t py-app-app:v1-CI -f Dockerfile.dev .
 
-      - echo "Собираем образ для контейнера с тестами"
-      - docker image build -t py-app-tests:v1-CI -f Dockerfile.tests .
+#       - echo "Собираем образ для контейнера с тестами"
+#       - docker image build -t py-app-tests:v1-CI -f Dockerfile.tests .
       
-      - echo "Пуллим образ db"
-      - docker image pull postgres:18
-      - docker images
+#       - echo "Пуллим образ db"
+#       - docker image pull postgres:18
+#       - docker images
 
 
 test-job: 
+  tag:
+    - "priora"
   stage: test   
   script:
       - echo "Проверяю наличие всех images"
