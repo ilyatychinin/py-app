@@ -150,24 +150,32 @@ deploy-job:      # This job runs in the deploy stage.
       ssh ilyatychinin@gitlab "echo 'Домашняя директория:' && pwd"
       ssh ilyatychinin@gitlab "echo 'Содержимое домашней директории:' && ls -la ~/"
   
-      ssh ilyatychinin@gitlab "echo "Переходим в репозиторий""
-      ssh ilyatychinin@gitlab "cd workdir/py-app"
-      ssh ilyatychinin@gitlab "ls -la"
-
-      ssh ilyatychinin@gitlab "echo "Git источник правды - берем актуальный код от туда""
-      ssh ilyatychinin@gitlab "git pull origin main"
-      ssh ilyatychinin@gitlab "sleep 5"
-
-      ssh ilyatychinin@gitlab "echo "...=====Deploying app=====...""
-      ssh ilyatychinin@gitlab "docker compose up -d postgres app bot nginx"
-
-      ssh ilyatychinin@gitlab "sleep 15"
-
-      ssh ilyatychinin@gitlab "echo "Проверяем запустилось ли приложение""
-      ssh ilyatychinin@gitlab "docker compose ps -a "
-
-      ssh ilyatychinin@gitlab "echo "Сохраняем логи""
-      ssh ilyatychinin@gitlab "docker compose logs >> log-deploy.txt"
+      ssh ilyatychinin@gitlab << 'EOF'
+      echo "=== Начинаем деплой ==="
+      echo "Текущий пользователь: $(whoami)"
+      echo "Домашняя директория: $(pwd)"
+      echo "Содержимое домашней директории:"
+      ls -la ~/
       
-      ssh ilyatychinin@gitlab "echo "Выводим логи приложения""
-      ssh ilyatychinin@gitlab "cat log-deploy.txt"
+      echo "Переходим в workdir/py-app"
+      cd ~/workdir/py-app || exit 1
+      echo "Текущая директория: $(pwd)"
+      ls -la
+      
+      echo "Git источник правды - берем актуальный код"
+      git pull origin develop
+      
+      echo "...=====Deploying app=====..."
+      docker compose up -d postgres app bot nginx
+      
+      sleep 15
+      
+      echo "Проверяем запустилось ли приложение"
+      docker compose ps -a
+      
+      echo "Сохраняем логи"
+      docker compose logs > log-deploy.txt 2>&1
+      
+      echo "Выводим логи приложения"
+      tail -50 log-deploy.txt
+      EOF
