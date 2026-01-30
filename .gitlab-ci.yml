@@ -11,7 +11,7 @@ variables:
   LOG_FILE_NAME: log.txt
   LOG_TESTS_FILE_NAME: log-tests.txt
   LOG_DEPLOY_FILE_NAME: log-deploy.txt
-stages:          # List of stages for jobs, and their order of execution
+stages:          
   - build
   - test
   - deploy
@@ -23,65 +23,62 @@ after_script:
   - echo "Пайплайн успешно завершен"
 
 
-build-job:
-  tags:
-    - shell      
-  stage: build
-  image: docker:20-dind
-  script:
-      - ls -la 
-      - echo "Собираем образ для бота"
-      - docker image build -t py-app-bot:v1-CI -f Dockerfile.bot .
+# build-job:  
+#   stage: build
+#   script:
+#       - ls -la 
+#       - echo "Собираем образ для бота"
+#       - docker image build -t py-app-bot:v1-CI -f Dockerfile.bot .
 
-      - echo "Собираем образ для прокси-сервера"
-      - docker image build -t py-app-proxy:v1-CI -f Dockerfile.nginx .
+#       - echo "Собираем образ для прокси-сервера"
+#       - docker image build -t py-app-proxy:v1-CI -f Dockerfile.nginx .
 
-      - echo "Собираем образ для бекенда"
-      - docker image build -t py-app-app:v1-CI -f Dockerfile.dev .
+#       - echo "Собираем образ для бекенда"
+#       - docker image build -t py-app-app:v1-CI -f Dockerfile.dev .
 
-      - echo "Собираем образ для контейнера с тестами"
-      - docker image build -t py-app-tests:v1-CI -f Dockerfile.tests .
+#       - echo "Собираем образ для контейнера с тестами"
+#       - docker image build -t py-app-tests:v1-CI -f Dockerfile.tests .
       
-      - echo "Пуллим образ db"
-      - docker image pull postgres:18
-      - docker images
+#       - echo "Пуллим образ db"
+#       - docker image pull postgres:18
+#       - docker images
 
 
-test-job:   # This job runs in the test stage.
-  stage: test    # It only starts when the job in the build stage completes successfully.
-  script:
-      - echo "Проверяю наличие всех images"
-      - docker images
+# test-job:   # This job runs in the test stage.
+#   stage: test    # It only starts when the job in the build stage completes successfully.
+#   script:
+#       - echo "Проверяю наличие всех images"
+#       - docker images
 
-      - echo "Убиваем старые попытки"
-      - docker compose down -v || echo "Контейнеры не были запущены"
-      - pkill -f "docker-proxy.*5000" || echo "Процесс не найден, продолжаем"
-      - pkill -f "docker-proxy.*5432" || echo "Процесс не найден, продолжаем"
-      - pkill -f "docker-proxy.*8080" || echo "Процесс не найден, продолжаем"
-      - pkill -f "docker-proxy.*5001" || echo "Процесс не найден, продолжаем"
+#       - echo "Убиваем старые попытки"
+#       - docker compose down -v || echo "Контейнеры не были запущены"
+#       - pkill -f "docker-proxy.*5000" || echo "Процесс не найден, продолжаем"
+#       - pkill -f "docker-proxy.*5432" || echo "Процесс не найден, продолжаем"
+#       - pkill -f "docker-proxy.*8080" || echo "Процесс не найден, продолжаем"
+#       - pkill -f "docker-proxy.*5001" || echo "Процесс не найден, продолжаем"
 
-      - echo "Запускаем приложение"
-      - docker compose up -d postgres app bot nginx
-      - sleep 5
+#       - echo "Запускаем приложение"
+#       - docker compose up -d postgres app bot nginx
+#       - sleep 5
 
-      - echo "Проверяю запустились ли все нужные сервисы"
-      - docker compose ps -a
+#       - echo "Проверяю запустились ли все нужные сервисы"
+#       - docker compose ps -a
 
-      - echo "Для лога смотрю сеть приложения"
-      - apk add jq
-      - docker container inspect py-app | jq '.[0].NetworkSettings.Networks' >> log.txt
-      - cat log.txt
+#       - echo "Для лога смотрю сеть приложения"
+#       - apk add jq
+#       - docker container inspect py-app | jq '.[0].NetworkSettings.Networks' >> log.txt
+#       - cat log.txt
 
-      - echo "Запускаю тесты"
-      - docker container run -d --name testing-py-app -p 5001:5001 --network=py-app_default py-app-tests:v1-CI
-      - sleep 7
-      - docker container logs testing-py-app >> log-tests.txt
-      - cat log-tests.txt
+#       - echo "Запускаю тесты"
+#       - docker container run -d --name testing-py-app -p 5001:5001 --network=py-app_default py-app-tests:v1-CI
+#       - sleep 7
+#       - docker container logs testing-py-app >> log-tests.txt
+#       - cat log-tests.txt
 
-      - echo "Убираем мусор за собой"
-      - docker container kill testing-py-app || echo "Контейнер уже завершен"
-      - docker container rm testing-py-app 
-      - docker compose down -v
+#       - echo "Убираем мусор за собой"
+#       - docker container kill testing-py-app || echo "Контейнер уже завершен"
+#       - docker container rm testing-py-app 
+#       - docker compose down -v
       
 
 
@@ -91,41 +88,82 @@ deploy-job:      # This job runs in the deploy stage.
  stage: deploy  
  environment: staging
  script:
-  - echo "Настраиваем окружение для подключения"
-  - mkdir -p ~/.ssh
-  - chmod 700 ~/.ssh
-  # Декодируем ключ из base64
-  - echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_ed25519
-  - chmod 600 ~/.ssh/id_ed25519
-
-  - echo -e "Host gitlab\n\tHostName gitlab\n\tUser ilyatychinin\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile /dev/null" > ~/.ssh/config
-  - chmod 600 ~/.ssh/config
-  # Тестируем подключение
-  - echo "Тестируем SSH подключение..."
-  - ssh ilyatychinin@gitlab "echo 'SSH подключение успешно!'"
-
-  - echo "Подключаемся на сервер для деплоя"
-  - ssh ilyatychinin@gitlab
-
-  - echo "Переходим в репозиторий"
-  - cd workdir/py-app
+  - apk add openssh-client
+  - echo "-----BEGIN OPENSSH PRIVATE KEY-----
+    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
+    -----END OPENSSH PRIVATE KEY-----" > ~/.ssh/id_rsa
+  - ssh ilyatychinin@192.168.0.239
   - ls -la
+  # - echo "Настраиваем окружение для подключения"
+  # - mkdir -p ~/.ssh
+  # - chmod 700 ~/.ssh
+  # # Декодируем ключ из base64
+  # - echo "$SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/id_ed25519
+  # - chmod 600 ~/.ssh/id_ed25519
 
-  - echo "Git источник правды - берем актуальный код от туда"
-  - git pull origin main
-  - sleep 5
+  # - echo -e "Host gitlab\n\tHostName gitlab\n\tUser ilyatychinin\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile /dev/null" > ~/.ssh/config
+  # - chmod 600 ~/.ssh/config
+  # # Тестируем подключение
+  # - echo "Тестируем SSH подключение..."
+  # - ssh ilyatychinin@gitlab "echo 'SSH подключение успешно!'"
 
-  - echo "...=====Deploying app=====..."
-  - docker compose up -d postgres app bot nginx
+  # - echo "Подключаемся на сервер для деплоя"
+  # - ssh ilyatychinin@gitlab
 
-  - sleep 15
+  # - echo "Переходим в репозиторий"
+  # - cd workdir/py-app
+  # - ls -la
 
-  - echo "Проверяем запустилось ли приложение"
-  - docker compose ps -a 
+  # - echo "Git источник правды - берем актуальный код от туда"
+  # - git pull origin main
+  # - sleep 5
 
-  - echo "Сохраняем логи"
-  - docker compose logs >> log-deploy.txt
+  # - echo "...=====Deploying app=====..."
+  # - docker compose up -d postgres app bot nginx
+
+  # - sleep 15
+
+  # - echo "Проверяем запустилось ли приложение"
+  # - docker compose ps -a 
+
+  # - echo "Сохраняем логи"
+  # - docker compose logs >> log-deploy.txt
   
-  - echo "Выводим логи приложения"
-  - cat log-deploy.txt
+  # - echo "Выводим логи приложения"
+  # - cat log-deploy.txt
 
