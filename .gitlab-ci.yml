@@ -85,9 +85,8 @@ after_script:
 
 
 deploy-job:      # This job runs in the deploy stage.
- stage: deploy  
- environment: staging
-   script:
+  stage: deploy
+  script:
     - |
       mkdir -p ~/.ssh
       chmod 700 ~/.ssh
