@@ -5,8 +5,11 @@ workflow:
     - if: '$CI_COMMIT_BRANCH == "main"'
     - if: '$CI_COMMIT_BRANCH == "develop"'
 
-    
-
+variables:
+  OWNER_NAME: Ilya Tychinin
+  CICD_VERSION: v1.0
+  LOG_FILE_NAME: log.txt
+  LOG_TESTS_FILE_NAME: log-tests.txt
 
 stages:          # List of stages for jobs, and their order of execution
   - build
@@ -24,10 +27,19 @@ build-job:       # This job runs in the build stage, which runs first.
   stage: build
   script:
       - ls -la 
+      - echo "Собираем образ для бота"
       - docker image build -t py-app-bot:v1-CI -f Dockerfile.bot .
+
+      - echo "Собираем образ для прокси-сервера"
       - docker image build -t py-app-proxy:v1-CI -f Dockerfile.nginx .
+
+      - echo "Собираем образ для бекенда"
       - docker image build -t py-app-app:v1-CI -f Dockerfile.dev .
+
+      - echo "Собираем образ для контейнера с тестами"
       - docker image build -t py-app-tests:v1-CI -f Dockerfile.tests .
+      
+      - echo "Пуллим образ db"
       - docker image pull postgres:18
       - docker images
 
@@ -35,12 +47,24 @@ build-job:       # This job runs in the build stage, which runs first.
 test-job:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
   script:
+      - echo "Проверяю наличие всех images"
       - docker images
-      - docker compose up -d
-      - sleep 2
+
+      - echo "Запускаем приложение"
+      - docker compose up -d postgres app bot nginx
+      - sleep 5
+
+      - echo "Проверяю запустились ли все нужные сервисы"
       - docker compose ps -a
-      - sleep 15
-      - docker compose logs tests 
+
+      - echo "Для лога смотрю сеть приложения"
+      - docker container inspect py-app | jq '.[0].NetworkSettings.Networks' >> log.txt
+      - cat log.txt
+
+      - echo "Запускаю тесты"
+      - docker container run -d --name testing-py-app -p 5001:5001 --network=py-app_default py-app-tests:v1-CI
+      - docker container logs testing-py-app >> log-tests.txt
+      - cat log-tests.txt
       
 
 
