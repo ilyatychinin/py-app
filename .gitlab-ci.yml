@@ -51,7 +51,7 @@ test-job:   # This job runs in the test stage.
       - docker images
 
       - echo "Убиваем старые попытки"
-      - docker compose down -v
+      - docker compose down -v || echo "Контейнеры не были запущены"
       - pkill -f "docker-proxy.*5000" || echo "Процесс не найден, продолжаем"
       - pkill -f "docker-proxy.*5432" || echo "Процесс не найден, продолжаем"
       - pkill -f "docker-proxy.*8080" || echo "Процесс не найден, продолжаем"
@@ -74,12 +74,27 @@ test-job:   # This job runs in the test stage.
       - sleep 7
       - docker container logs testing-py-app >> log-tests.txt
       - cat log-tests.txt
+
+      - echo "Убираем мусор за собой"
       - docker container kill testing-py-app || echo "Контейнер уже завершен"
       - docker container rm testing-py-app 
+      - docker compose down -v
       
 
 
-#deploy-job:      # This job runs in the deploy stage.
-#  stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
-#  environment: production
+
+
+# deploy-job:      # This job runs in the deploy stage.
+#  stage: deploy  
+#  environment: staging
 #  script:
+#   - echo "Подключаемся на сервер для деплоя"
+#   - ssh ilyatychinin@gitlab
+
+#   - echo "Переходим в репозиторий"
+#   - cd workdir/py-app
+#   - ls -la
+
+#   - echo "Git источник правды - берем актуальный код от туда"
+#   - git pull origin main
+#   - sleep 5
