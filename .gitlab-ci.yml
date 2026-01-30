@@ -89,6 +89,7 @@ deploy-job:      # This job runs in the deploy stage.
  environment: staging
  script:
   - apk add openssh-client
+  - mkdir -p ~/.ssh
   - echo "-----BEGIN OPENSSH PRIVATE KEY-----
     b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn
     NhAAAAAwEAAQAAAYEAviKTrdmJ7NTNJgfYKUJNw630erbDjlzctwsYVWxx7Fnu5trkzJd2
