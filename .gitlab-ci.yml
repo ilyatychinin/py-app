@@ -27,6 +27,7 @@ build-job:
   tags:
     - shell      
   stage: build
+  image: docker:20-dind
   script:
       - ls -la 
       - echo "Собираем образ для бота"
