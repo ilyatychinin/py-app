@@ -88,6 +88,69 @@ deploy-job:
   stage: deploy
   script:
     - | 
+      mkdir -p ~/.ssh
+      chmod 700 ~/.ssh
+      
+      # Создаем ключ с правильными переносами строк
+      cat > ~/.ssh/id_rsa << 'EOF'
+      -----BEGIN OPENSSH PRIVATE KEY-----
+      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
+      gojGWj0wijEAAAAJaWx5YUB2Ym94AQI=
+      -----END OPENSSH PRIVATE KEY-----
+      EOF
+      
+      chmod 600 ~/.ssh/id_rsa
+
+      
+      # ИЛИ добавляем хост в known_hosts
+      ssh-keyscan vbox >> ~/.ssh/known_hosts
+      chmod 644 ~/.ssh/known_hosts
+
       echo "Ключ создан, настраиваю подключение..."
       echo "=== Информация о контейнере раннера ==="
       pwd
