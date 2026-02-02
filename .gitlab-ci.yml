@@ -88,7 +88,9 @@ deploy-job:
   stage: deploy
   script:
     - | 
+      apk add --no-cache openssh-client
       mkdir -p ~/.ssh
+      ssh-keyscan vbox >> ~/.ssh/known_hos
       chmod 700 ~/.ssh
       
       # Создаем ключ с правильными переносами строк
