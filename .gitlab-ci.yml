@@ -88,11 +88,11 @@ deploy-job:
   stage: deploy
   script:
     - |
-      mkdir -p /home/ilya/.ssh
-      chmod 700 /home/ilya/.ssh
+      mkdir -p ~/.ssh
+      chmod 700 ~/.ssh
       
       # Создаем ключ с правильными переносами строк
-      cat > /home/ilya/.ssh/id_rsa << 'EOF'
+      cat > ~/.ssh/id_rsa << 'EOF'
       -----BEGIN OPENSSH PRIVATE KEY-----
       b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAACFwAAAAdzc2gtcn
       NhAAAAAwEAAQAAAgEAsG2THocP2yLYcapuKhBCR9DwhS+nLnDefVkkZNN2U92A6Fpjf0Nv
@@ -144,12 +144,12 @@ deploy-job:
       -----END OPENSSH PRIVATE KEY-----
       EOF
       
-      chmod 600 /home/ilya/.ssh/id_rsa
+      chmod 600 ~/.ssh/id_rsa
 
       
       # ИЛИ добавляем хост в known_hosts
-      ssh-keyscan gitlab >> /home/ilya/.ssh/known_hosts
-      chmod 644 /home/ilya/.ssh/known_hosts
+      ssh-keyscan vbox >> ~/.ssh/known_hosts
+      chmod 644 ~/.ssh/known_hosts
       
       echo "Ключ создан, настраиваю подключение..."
       echo "=== Информация о контейнере раннера ==="
