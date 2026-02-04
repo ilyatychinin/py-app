@@ -31,7 +31,8 @@ build-job:
       - docker push localhost:6000/py-app-app:v1-CI
 
       - echo "Собираем образ для контейнера с тестами"
-      - docker image build -t py-app-tests:v1-CI -f Dockerfile.tests .
+      - docker image build -t localhost:6000/py-app-tests:v1-CI -f Dockerfile.tests .
+      - docker push localhost:6000/py-app-tests:v1-CI
       
       - echo "Пуллим образ db"
       - docker image pull postgres:18
