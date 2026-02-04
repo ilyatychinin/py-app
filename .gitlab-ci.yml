@@ -27,7 +27,8 @@ build-job:
       - docker image build -t py-app-proxy:v1-CI -f Dockerfile.nginx .
 
       - echo "Собираем образ для бекенда"
-      - docker image build -t py-app-app:v1-CI -f Dockerfile.dev .
+      - docker build -t $CI_REGISTRY_IMAGE/py-app-app:v1-CI -f Dockerfile.dev .
+      - docker push $CI_REGISTRY_IMAGE/py-app-app:v1-CI
 
       - echo "Собираем образ для контейнера с тестами"
       - docker image build -t py-app-tests:v1-CI -f Dockerfile.tests .
