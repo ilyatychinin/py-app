@@ -58,10 +58,11 @@ unit-test:
     POSTGRES_PASSWORD: 12345678
     POSTGRES_HOST_AUTH_METHOD: trust
   script:
+    - ls -la
   #  - запускаю питон, он подключается сюда -> postgresql://[admin[:12345678]@][db][:5432][/schema.sql][?options(какой-нибудь похуй трастим, инсекюр, без презика)]
     - export DATABASE_URL="postgresql://admin@db:5432/schema.sql?sslmode=disable"
     - python --version 
-    - cd app/tests/
+    - cd tests/
     - python -m pytest test_api.py -v
 
 
