@@ -1,6 +1,6 @@
 services:
   app:
-    image: py-app-app:v1-CI
+    image: localhost:6000/py-app-app:v1-CI
     container_name: py-app
     ports:
       - "5000:5000"
@@ -40,7 +40,7 @@ services:
 
   tests:
     container_name: py-app-tests
-    image: py-app-tests:v1-CI
+    image: localhost:6000/py-app-tests:v1-CI
     ports:
       - "5001:5001"
     command: >
