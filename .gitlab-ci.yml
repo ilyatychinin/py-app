@@ -37,6 +37,9 @@ build-job:
       - docker images
 
 
+before_script:
+  - echo "Собираем образ для бекенда"
+  - docker image build -t py-app-app:v1-CI -f Dockerfile.dev .
 
 unit-test: 
   stage: test
