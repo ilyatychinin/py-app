@@ -45,7 +45,7 @@ build-job:
 
 unit-test: 
   stage: test
-  image: py-app-tests:v1-CI 
+  image: localhost:6000/py-app-tests:v1-CI
   services:
     - name: postgres:18
       alias: db
