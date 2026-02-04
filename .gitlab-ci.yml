@@ -48,7 +48,7 @@ unit-test:
   services:
     - name: postgres:18
       alias: db
-    - name: py-app-app:v1-CI
+    - name: localhost:6000/py-app-app:v1-CI
       alias: backend
   variables:
     FF_NETWORK_PER_BUILD: 1 # для того чтобы была одна сеть у сервисов
