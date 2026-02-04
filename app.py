@@ -7,6 +7,15 @@ from typing import List, Optional
 import time
 from psycopg2 import OperationalError
 from prometheus_fastapi_instrumentator import Instrumentator
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+DB_HOST = os.getenv('POSTGRESQL_HOST')
+DB_NAME = os.getenv('POSTGRESQL_NAME')
+DB_USER = os.getenv('POSTGRESQL_USER')
+DB_PASSWORD = os.getenv('POSTGRESQL_PASSWORD')
+DB_PORT = os.getenv('POSTGRESQL_PORT')
 
 app = FastAPI(title="TODO API", version="1.0.0")
 
@@ -44,11 +53,11 @@ def get_db_connection_with_retry(max_retries=10, delay=2):
     for attempt in range(max_retries):
         try:
             conn = psycopg2.connect(
-                host='postgres',
-                database='myapp',
-                user='admin',
-                password='admin',
-                port=5432
+                host=DB_HOST,
+                database=DB_NAME,
+                user=DB_USER,
+                password=DB_PASSWORD,
+                port=DB_PORT
             )
             return conn
         except OperationalError as e:

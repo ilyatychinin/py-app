@@ -16,70 +16,44 @@ stages:
   - test
   - deploy
 
-before_script:
-  - echo "Начинаю выполнение пайплайна"
+build-job:  
+  stage: build
+  script:
+      - ls -la 
+      - echo "Собираем образ для бота"
+      - docker image build -t py-app-bot:v1-CI -f Dockerfile.bot .
 
-after_script:
-  - echo "Пайплайн успешно завершен"
+      - echo "Собираем образ для прокси-сервера"
+      - docker image build -t py-app-proxy:v1-CI -f Dockerfile.nginx .
 
+      - echo "Собираем образ для бекенда"
+      - docker image build -t py-app-app:v1-CI -f Dockerfile.dev .
 
-# build-job:  
-#   stage: build
-#   script:
-#       - ls -la 
-#       - echo "Собираем образ для бота"
-#       - docker image build -t py-app-bot:v1-CI -f Dockerfile.bot .
-
-#       - echo "Собираем образ для прокси-сервера"
-#       - docker image build -t py-app-proxy:v1-CI -f Dockerfile.nginx .
-
-#       - echo "Собираем образ для бекенда"
-#       - docker image build -t py-app-app:v1-CI -f Dockerfile.dev .
-
-#       - echo "Собираем образ для контейнера с тестами"
-#       - docker image build -t py-app-tests:v1-CI -f Dockerfile.tests .
+      - echo "Собираем образ для контейнера с тестами"
+      - docker image build -t py-app-tests:v1-CI -f Dockerfile.tests .
       
-#       - echo "Пуллим образ db"
-#       - docker image pull postgres:18
-#       - docker images
+      - echo "Пуллим образ db"
+      - docker image pull postgres:18
+      - docker images
 
 
-# test-job: 
-#   stage: test
-#   script:
-#     - echo "Проверяю наличие всех images"
-#     - docker images
 
-#     - echo "Убиваем старые попытки"
-#     - docker compose down -v || echo "Контейнеры не были запущены"
-#     - pkill -f "docker-proxy.*5000" || echo "Процесс не найден, продолжаем"
-#     - pkill -f "docker-proxy.*5432" || echo "Процесс не найден, продолжаем"
-#     - pkill -f "docker-proxy.*8080" || echo "Процесс не найден, продолжаем"
-#     - pkill -f "docker-proxy.*5001" || echo "Процесс не найден, продолжаем"
+unit-test: 
+  stage: test
+  image: py-app-tests:v1-CI
+  services:
+    - name: postgres:18
+      alias: db
+  variables:
+    POSTGRES_DB: schema.sql
+    POSTGRES_USER: admin
+    POSTGRES_PASSWORD: ujksdhfsdjkf
+    POSTGRES_HOST_AUTH_METHOD: trust
+  script:
+    - запускаю питон, он подключается сюда -> postgresql://[admin[:ujksdhfsdjkf]@][db][:5432][/schema.sql][?options(какой-нибудь похуй трастим, инсекюр, без презика)]
+  tags:
+    - priora
 
-#     - echo "Запускаем приложение"
-#     - docker compose up -d postgres app bot nginx
-#     - sleep 5
-
-#     - echo "Проверяю запустились ли все нужные сервисы"
-#     - docker compose ps -a
-
-#     - echo "Для лога смотрю сеть приложения"
-#     - apk add jq
-#     - docker container inspect py-app | jq '.[0].NetworkSettings.Networks' >> log.txt
-#     - cat log.txt
-
-#     - echo "Запускаю тесты"
-#     - docker container run -d --name testing-py-app -p 5001:5001 --network=py-app_default py-app-tests:v1-CI
-#     - sleep 7
-#     - docker container logs testing-py-app >> log-tests.txt
-#     - cat log-tests.txt
-
-#     - echo "Убираем мусор за собой"
-#     - docker container kill testing-py-app || echo "Контейнер уже завершен"
-#     - docker container rm testing-py-app 
-#     - docker compose down -v
-      
 
 
 
