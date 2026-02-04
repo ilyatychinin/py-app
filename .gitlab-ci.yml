@@ -60,7 +60,7 @@ unit-test:
   script:
     - ls -la
   #  - запускаю питон, он подключается сюда -> postgresql://[admin[:12345678]@][db][:5432][/schema.sql][?options(какой-нибудь похуй трастим, инсекюр, без презика)]
-    - export DATABASE_URL="postgresql://admin@postgres:5432/schema.sql?sslmode=disable"
+    - export DATABASE_URL="postgresql://admin@postgres:5432/postgres?sslmode=disable"
     - python --version 
     - cd tests/
     - python -m pytest test_api.py -v
