@@ -45,6 +45,7 @@ build-job:
 unit-test: 
   stage: test
   image: py-app-tests:v1-CI
+  pull_policy: if-not-present 
   services:
     - name: postgres:18
       alias: db
