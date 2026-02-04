@@ -58,8 +58,7 @@ unit-test:
     - python --version 
     - cd app/tests/
     - python -m pytest test_api.py -v
-  tags:
-    - priora
+
 
 
 
