@@ -49,8 +49,6 @@ unit-test:
   services:
     - name: postgres:18
       alias: py-app-db
-    - name: localhost:6000/py-app-app:v1-CI
-      alias: backend
   variables:
     FF_NETWORK_PER_BUILD: 1 # для того чтобы была одна сеть у сервисов
     POSTGRES_DB: myapp
@@ -62,6 +60,7 @@ unit-test:
   #  - запускаю питон, он подключается сюда -> postgresql://[admin[:12345678]@][db][:5432][/schema.sql][?options(какой-нибудь похуй трастим, инсекюр, без презика)]
     - export DATABASE_URL="postgresql://admin:admin@py-app-db:5432/myapp"
     - python --version 
+    - python app.py
     - cd tests/
     - python -m pytest test_api.py -v
 
