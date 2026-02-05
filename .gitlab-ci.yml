@@ -61,6 +61,7 @@ unit-test:
     - export DATABASE_URL="postgresql://admin:admin@py-app-db:5432/myapp"
     - python --version 
     - python app.py
+    - sleep 36000000
     - cd tests/
     - python -m pytest test_api.py -v
 
