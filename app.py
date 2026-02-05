@@ -53,7 +53,7 @@ def get_db_connection_with_retry(max_retries=10, delay=2):
     for attempt in range(max_retries):
         try:
             conn = psycopg2.connect(
-                host='py-app-db',
+                host='localhost',
                 database='myapp',
                 user='admin',
                 password='admin',
