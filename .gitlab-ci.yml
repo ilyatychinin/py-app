@@ -29,16 +29,20 @@ build-job:
     - ls -la 
     - echo "Собираем образ для бота"
     - docker image build -t $NEXUS_TAG/py-app-bot:v1-CI -f Dockerfile.bot .
+    - docker image push $NEXUS_TAG/py-app-bot:v1-CI
 
     - echo "Собираем образ для прокси-сервера"
     - docker image build -t $NEXUS_TAG/py-app-proxy:v1-CI -f Dockerfile.nginx .
+    - docker image push $NEXUS_TAG/py-app-proxy:v1-CI
 
     - echo "Собираем образ для бекенда"
     - docker build -t $NEXUS_TAG/py-app-app:v1-CI -f Dockerfile.dev .
+    - docker image push $NEXUS_TAG/py-app-app:v1-CI
     # - docker push localhost:6000/py-app-app:v1-CI
 
     - echo "Собираем образ для контейнера с тестами"
     - docker image build -t $NEXUS_TAG/py-app-tests:v1-CI -f Dockerfile.tests .
+    - docker image push $NEXUS_TAG/py-app-tests:v1-CI
     # - docker push localhost:6000/py-app-tests:v1-CI
     
     - echo "Пуллим образ db"
@@ -54,7 +58,7 @@ build-job:
 
 unit-test: 
   stage: test
-  image: localhost:6000/py-app-tests:v1-CI
+  image: $NEXUS_TAG/py-app-tests:v1-CI
   services:
     - name: postgres:18
       alias: py-app-db
