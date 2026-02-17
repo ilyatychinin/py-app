@@ -68,6 +68,8 @@ unit-test:
     POSTGRES_USER: admin
     POSTGRES_PASSWORD: admin
     POSTGRES_HOST_AUTH_METHOD: trust
+  before_script:
+    - echo "$NEXUS_PASS" | docker login $NEXUS_URL -u "$NEXUS_USER" --password-stdin
   script:
     - ls -la
   #  - запускаю питон, он подключается сюда -> postgresql://[admin[:12345678]@][db][:5432][/schema.sql][?options(какой-нибудь похуй трастим, инсекюр, без презика)]
