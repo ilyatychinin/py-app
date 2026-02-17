@@ -20,7 +20,7 @@ build-job:
   stage: build
   variables:
     NEXUS_URL: "http://127.0.0.1:5000"
-    NEXUS_TAG: "127.0.0.1:5000/py-app-registry/"
+    NEXUS_TAG: "127.0.0.1:5000/py-app-registry"
 
   before_script:
     - echo "$NEXUS_PASS" | docker login $NEXUS_URL -u "$NEXUS_USER" --password-stdin
