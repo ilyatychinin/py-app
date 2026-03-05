@@ -1,8 +1,6 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
+    image: localhost:6000/py-app-app:v1-CI
     container_name: py-app
     ports:
       - "5000:5000"
@@ -10,9 +8,7 @@ services:
       postgres:
         condition: service_healthy  # ← Ждет healthcheck
   nginx:
-    build:
-      context: .
-      dockerfile: Dockerfile.nginx
+    image: py-app-proxy:v1-CI
     container_name: py-app-proxy
     ports:
       - "8080:80"
@@ -35,16 +31,24 @@ services:
       timeout: 5s
       retries: 10
   bot:
-    build:
-      context: .
-      dockerfile: Dockerfile.bot
-    command: python -m bot.main
+    image: py-app-bot:v1-CI
+   # command: python -m bot.main
     env_file: .env
     depends_on:
       - app
       - postgres
-    
-  # prometheus:
+
+  tests:
+    container_name: py-app-tests
+    image: localhost:6000/py-app-tests:v1-CI
+    ports:
+      - "5001:5001"
+    command: >
+      sh -c "cd /app/tests && 
+             python -m pytest test_api.py -v"  # Только тесты API!
+    depends_on:
+      - app 
+  #   prometheus:
   #   image: prom/prometheus
   #   container_name: py-app-metrics
   #   ports:

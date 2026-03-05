@@ -1,0 +1,82 @@
+workflow:
+  rules:
+    # Всегда запускать для MR
+    - if: '$CI_MERGE_REQUEST_IID'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+variables:
+  OWNER_NAME: Ilya Tychinin
+  CICD_VERSION: v1.0
+  LOG_FILE_NAME: log.txt
+  LOG_TESTS_FILE_NAME: log-tests.txt
+  LOG_DEPLOY_FILE_NAME: log-deploy.txt
+stages:          
+  - build
+  - test
+  - deploy
+
+build-job:  
+  stage: build
+  variables:
+    NEXUS_URL: "http://127.0.0.1:5000"
+    NEXUS_TAG: "127.0.0.1:5000/py-app-registry"
+
+  before_script:
+    - echo "$NEXUS_PASS" | docker login $NEXUS_URL -u "$NEXUS_USER" --password-stdin
+
+  script:
+    - ls -la 
+    - echo "Собираем образ для бота"
+    - docker image build -t $NEXUS_TAG/py-app-bot:v1-CI -f Dockerfile.bot .
+    - docker image push $NEXUS_TAG/py-app-bot:v1-CI
+
+    - echo "Собираем образ для прокси-сервера"
+    - docker image build -t $NEXUS_TAG/py-app-proxy:v1-CI -f Dockerfile.nginx .
+    - docker image push $NEXUS_TAG/py-app-proxy:v1-CI
+
+    - echo "Собираем образ для бекенда"
+    - docker build -t $NEXUS_TAG/py-app-app:v1-CI -f Dockerfile.dev .
+    - docker image push $NEXUS_TAG/py-app-app:v1-CI
+    # - docker push localhost:6000/py-app-app:v1-CI
+
+    - echo "Собираем образ для контейнера с тестами"
+    - docker image build -t $NEXUS_TAG/py-app-tests:v1-CI -f Dockerfile.tests .
+    - docker image push $NEXUS_TAG/py-app-tests:v1-CI
+    # - docker push localhost:6000/py-app-tests:v1-CI
+    
+    - echo "Пуллим образ db"
+    - docker image pull postgres:18
+    - docker image tag postgres:18 $NEXUS_TAG/postgres:18
+    - docker image push $NEXUS_TAG/postgres:18
+    - docker images
+
+
+# before_script:
+#   - echo "Собираем образ для бекенда"
+#   - docker image build -t py-app-app:v1-CI -f Dockerfile.dev .
+
+unit-test: 
+  stage: test
+  image: $NEXUS_TAG/py-app-tests:v1-CI
+  services:
+    - name: postgres:18
+      alias: py-app-db
+  variables:
+    FF_NETWORK_PER_BUILD: 1 # для того чтобы была одна сеть у сервисов
+    POSTGRES_DB: myapp
+    POSTGRES_USER: admin
+    POSTGRES_PASSWORD: admin
+    POSTGRES_HOST_AUTH_METHOD: trust
+  before_script:
+    - echo "$NEXUS_PASS" | docker login $NEXUS_URL -u "$NEXUS_USER" --password-stdin
+  script:
+    - ls -la
+  #  - запускаю питон, он подключается сюда -> postgresql://[admin[:12345678]@][db][:5432][/schema.sql][?options(какой-нибудь похуй трастим, инсекюр, без презика)]
+    - export DATABASE_URL="postgresql://admin:admin@py-app-db:5432/myapp"
+    - python --version 
+    - python app.py &
+    - cd tests/
+    - python -m pytest test_api.py -v
+
+
